@@ -19,36 +19,44 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
 
-const instructorCollection = client.db("scholarlingoDB").collection("instructors");
+        const instructorCollection = client.db("scholarlingoDB").collection("instructors");
 
-// get all data from database
+        const userCollection = client.db("scholarlingoDB").collection("usersData");
 
-app.get('/instructors', async (req, res) => {
-const result = await instructorCollection.find().toArray()
-res.send(result)
+        // get all data from database
+        app.get('/instructors', async (req, res) => {
+            const result = await instructorCollection.find().toArray()
+            res.send(result)
 
-})
+        })
 
+        // selected course section
+        app.post('/usersData', async (req, res) => {
+            const item = req.body
+            console.log(item)
+            const result = await userCollection.insertOne(item)
+            res.send(result)
+        })
 
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
-  }
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // Ensures that the client will close when you finish/error
+        // await client.close();
+    }
 }
 run().catch(console.dir);
 
