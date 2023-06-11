@@ -34,6 +34,7 @@ async function run() {
         const instructorCollection = client.db("scholarlingoDB").collection("instructors");
 
         const userCollection = client.db("scholarlingoDB").collection("usersData");
+        const onlyUsersCollection = client.db("scholarlingoDB").collection("users");
 
         // get all data from database
         app.get('/instructors', async (req, res) => {
@@ -41,6 +42,25 @@ async function run() {
             res.send(result)
 
         })
+        // save user data
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email }
+            const existingUser = await onlyUsersCollection.findOne(query);
+
+            if (existingUser) {
+                return res.send({ message: 'user already exists' })
+            }
+
+            const result = await onlyUsersCollection.insertOne(user);
+            res.send(result);
+        });
+        // get all user data
+
+        app.get('/users',  async (req, res) => {
+            const result = await onlyUsersCollection.find().toArray();
+            res.send(result);
+        });
 
         // selected course section
         app.post('/usersData', async (req, res) => {
@@ -60,9 +80,9 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/userData/:id', async(req, res)=>{
-            const  id = req.params.id
-            const query= {_id: new ObjectId(id)}
+        app.delete('/userData/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query)
             res.send(result)
         })
