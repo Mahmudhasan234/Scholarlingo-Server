@@ -33,6 +33,7 @@ async function run() {
         await client.connect();
 
         const instructorCollection = client.db("scholarlingoDB").collection("instructors");
+        const reviewCollection = client.db("scholarlingoDB").collection("reviews");
 
         const userCollection = client.db("scholarlingoDB").collection("usersData");
         const onlyUsersCollection = client.db("scholarlingoDB").collection("users");
@@ -71,8 +72,28 @@ async function run() {
         app.get('/instructors', async (req, res) => {
             const result = await instructorCollection.find().toArray()
             res.send(result)
-
         })
+
+
+        app.post('/instructors', async (req, res) => {
+            const newCourse = req.body
+            const result = await instructorCollection.insertOne(newCourse)
+            res.send(result)
+        })
+        // add for review
+        app.post('/reviews', async (req, res) => {
+            const newCourse = req.body
+            const result = await reviewCollection.insertOne(newCourse)
+            res.send(result)
+        })
+        app.get('/reviews', async (req, res) => {
+            const result = await reviewCollection.find().toArray()
+            res.send(result)
+        })
+
+
+
+
         // save user data
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -104,15 +125,15 @@ async function run() {
             const result = await onlyUsersCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
-// admin verify
-// todo: verify
-app.get('/users/:email', async (req, res) => {
-    const email = req.params.email;
-    const query = { email: email }
-    const user = await onlyUsersCollection.findOne(query);
-    const result = { admin: user?.role === 'admin' }
-    res.send(result);
-  })
+        // admin verify
+        // todo: verify
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await onlyUsersCollection.findOne(query);
+            const result = { admin: user?.role === 'admin' }
+            res.send(result);
+        })
 
         // make instructor
         app.patch('/users/instructor/:email', async (req, res) => {
@@ -127,15 +148,15 @@ app.get('/users/:email', async (req, res) => {
             res.send(result)
         })
 
-// instructor verify
-// todo: verify
-app.get('/users/instructor/:email', async (req, res) => {
-    const email = req.params.email;
-    const query = { email: email }
-    const user = await onlyUsersCollection.findOne(query);
-    const result = { admin: user?.role === 'instructor' }
-    res.send(result);
-  })
+        // instructor verify
+        // todo: verify
+        app.get('/users/instructor/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await onlyUsersCollection.findOne(query);
+            const result = { admin: user?.role === 'instructor' }
+            res.send(result);
+        })
 
         // selected course section
         app.post('/usersData', async (req, res) => {
@@ -153,7 +174,7 @@ app.get('/users/instructor/:email', async (req, res) => {
             // if (email !== decodedEmail) {
             //   return res.status(403).send({ error: true, message: 'access denied' })
             // }
-      
+
 
             let query = {}
             if (req.query.email) {
