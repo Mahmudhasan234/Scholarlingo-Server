@@ -57,10 +57,24 @@ async function run() {
         });
         // get all user data
 
-        app.get('/users',  async (req, res) => {
+        app.get('/users', async (req, res) => {
             const result = await onlyUsersCollection.find().toArray();
             res.send(result);
         });
+        // update data
+        app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                  role: 'admin'
+                },
+              };
+              const result = await onlyUsersCollection.updateOne(filter,updateDoc)
+              res.send(result)
+        })
+
+
 
         // selected course section
         app.post('/usersData', async (req, res) => {
