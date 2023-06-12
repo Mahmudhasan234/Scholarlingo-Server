@@ -98,6 +98,7 @@ async function run() {
            
             res.send(result);
         })
+        // approved
         app.patch('/reviews/:id', async (req, res) => {
             const id = req.params.id;
             console.log(id)
@@ -110,7 +111,8 @@ async function run() {
             const result = await reviewCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
-        app.patch('/reviews/:id', async (req, res) => {
+        // denied
+        app.patch('/reviews/denied/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id)}
             const updateDoc = {
