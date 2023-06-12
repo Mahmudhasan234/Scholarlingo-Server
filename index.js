@@ -91,7 +91,36 @@ async function run() {
             res.send(result)
         })
 
-
+        app.get('/reviews/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const result = await reviewCollection.find(query).toArray();
+           
+            res.send(result);
+        })
+        app.patch('/reviews/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id)
+            const filter = { _id: new ObjectId(id)}
+            const updateDoc = {
+                $set: {
+                    status: 'approved'
+                },
+            };
+            const result = await reviewCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+        app.patch('/reviews/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id)}
+            const updateDoc = {
+                $set: {
+                    status: 'denied'
+                },
+            };
+            const result = await reviewCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
 
 
         // save user data
