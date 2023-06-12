@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const jwt = require('jsonwebtoken');
 const cors = require('cors')
 require('dotenv').config()
 const port = process.env.PORT || 5000
@@ -36,6 +37,36 @@ async function run() {
         const userCollection = client.db("scholarlingoDB").collection("usersData");
         const onlyUsersCollection = client.db("scholarlingoDB").collection("users");
 
+
+        // const verifyJWT = (req, res, next) => {
+        //     const authorization = req.headers.authorization;
+        //     if (!authorization) {
+        //         return res.status(401).send({ error: true, message: 'unauthorized access defined' });
+        //     }
+        //     const token = authorization.split(' ')[1];
+
+        //     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        //         if (err) {
+        //             return res.status(401).send({ error: true, message: 'unauthorized access defined' })
+        //         }
+        //         req.decoded = decoded;
+        //         next();
+        //     })
+        // }
+
+
+
+
+        // jwt 
+        // app.post('/jwt', (req, res) => {
+        //     const user = req.body;
+        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '2h' })
+
+        //     res.send({ secret: token })
+        // })
+
+
+
         // get all data from database
         app.get('/instructors', async (req, res) => {
             const result = await instructorCollection.find().toArray()
@@ -62,33 +93,49 @@ async function run() {
             res.send(result);
         });
         // update data
-        app.patch('/users/admin/:id', async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) }
+        app.patch('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email }
             const updateDoc = {
                 $set: {
-                  role: 'admin'
+                    role: 'admin'
                 },
-              };
-              const result = await onlyUsersCollection.updateOne(filter,updateDoc)
-              res.send(result)
+            };
+            const result = await onlyUsersCollection.updateOne(filter, updateDoc)
+            res.send(result)
         })
-
+// admin verify
+// todo: verify
+app.get('/users/:email', async (req, res) => {
+    const email = req.params.email;
+    const query = { email: email }
+    const user = await onlyUsersCollection.findOne(query);
+    const result = { admin: user?.role === 'admin' }
+    res.send(result);
+  })
 
         // make instructor
-        app.patch('/users/instructor/:id', async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) }
+        app.patch('/users/instructor/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email }
             const updateDoc = {
                 $set: {
-                  role: 'instructor'
+                    role: 'instructor'
                 },
-              };
-              const result = await onlyUsersCollection.updateOne(filter,updateDoc)
-              res.send(result)
+            };
+            const result = await onlyUsersCollection.updateOne(filter, updateDoc)
+            res.send(result)
         })
 
-
+// instructor verify
+// todo: verify
+app.get('/users/instructor/:email', async (req, res) => {
+    const email = req.params.email;
+    const query = { email: email }
+    const user = await onlyUsersCollection.findOne(query);
+    const result = { admin: user?.role === 'instructor' }
+    res.send(result);
+  })
 
         // selected course section
         app.post('/usersData', async (req, res) => {
@@ -100,6 +147,14 @@ async function run() {
         // get  selected Course data for email
 
         app.get('/usersData', async (req, res) => {
+
+
+            // const decodedEmail = req.decoded.email;
+            // if (email !== decodedEmail) {
+            //   return res.status(403).send({ error: true, message: 'access denied' })
+            // }
+      
+
             let query = {}
             if (req.query.email) {
                 query = { email: req.query.email }
