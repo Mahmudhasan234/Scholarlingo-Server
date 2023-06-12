@@ -95,14 +95,14 @@ async function run() {
             const email = req.params.email;
             const query = { email: email }
             const result = await reviewCollection.find(query).toArray();
-           
+
             res.send(result);
         })
         // approved
         app.patch('/reviews/:id', async (req, res) => {
             const id = req.params.id;
             console.log(id)
-            const filter = { _id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updateDoc = {
                 $set: {
                     status: 'approved'
@@ -114,7 +114,7 @@ async function run() {
         // denied
         app.patch('/reviews/denied/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = { _id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updateDoc = {
                 $set: {
                     status: 'denied'
@@ -124,6 +124,19 @@ async function run() {
             res.send(result)
         })
 
+        // send FeedBack
+        app.put('/reviews/feedback/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const { feedback } = req.body
+            const updateDoc = {
+                $set: {
+                    feedback: feedback
+                },
+            };
+            const result = await reviewCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
 
         // save user data
         app.post('/users', async (req, res) => {
