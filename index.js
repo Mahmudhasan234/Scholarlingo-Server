@@ -3,6 +3,7 @@ const app = express()
 const jwt = require('jsonwebtoken');
 const cors = require('cors')
 require('dotenv').config()
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 const port = process.env.PORT || 5000
 const corsOptions = {
     origin: '*',
@@ -202,7 +203,7 @@ async function run() {
             const result = { admin: user?.role === 'instructor' }
             res.send(result);
         })
-
+        // 
         // selected course section
         app.post('/usersData', async (req, res) => {
             const item = req.body
@@ -210,6 +211,24 @@ async function run() {
             const result = await userCollection.insertOne(item)
             res.send(result)
         })
+
+
+        // payment section
+        app.post("/create-payment-intent", async (req, res) => {
+            const {price} = req.body;
+            console.log(price)
+            if (price) {
+                const amount = parseInt(price) * 100
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: amount,
+                    currency: "usd",
+                    payment_method_types: ['card']
+                });
+                res.send({
+                    clientSecret: paymentIntent.client_secret,
+                });
+            }
+        });
         // get  selected Course data for email
 
         app.get('/usersData', async (req, res) => {
@@ -229,10 +248,17 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/userData/:id', async (req, res) => {
+        app.delete('/usersData/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        app.get('/usersData/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await userCollection.findOne(query)
             res.send(result)
         })
 
