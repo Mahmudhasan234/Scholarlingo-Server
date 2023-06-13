@@ -34,6 +34,7 @@ async function run() {
         await client.connect();
 
         const instructorCollection = client.db("scholarlingoDB").collection("instructors");
+        const paymentCollection = client.db("scholarlingoDB").collection("payments");
         const reviewCollection = client.db("scholarlingoDB").collection("reviews");
 
         const userCollection = client.db("scholarlingoDB").collection("usersData");
@@ -72,6 +73,13 @@ async function run() {
         // get all data from database
         app.get('/instructors', async (req, res) => {
             const result = await instructorCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.get('/instructors/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await instructorCollection.findOne(query)
             res.send(result)
         })
 
@@ -215,7 +223,7 @@ async function run() {
 
         // payment section
         app.post("/create-payment-intent", async (req, res) => {
-            const {price} = req.body;
+            const { price } = req.body;
             console.log(price)
             if (price) {
                 const amount = parseInt(price) * 100
@@ -229,6 +237,51 @@ async function run() {
                 });
             }
         });
+
+        // get payment api
+
+        app.post('/payments', async (req, res) => {
+            const payment = req.body
+            console.log(payment)
+            const instructorId = payment.instructorId;
+            const query = { _id: new ObjectId(instructorId) }
+            // Assuming you have the instructorId in the payment object
+
+            // Get the current values of availableSeatForEnrollment and currentEnrollStudent
+            const instructor = await instructorCollection.findOne(query);
+            console.log(instructor)
+            const currentAvailableSeat = instructor.availableSeatForEnrollment;
+            console.log(currentAvailableSeat)
+            const currentEnrollStudent = instructor.currentEnrollStudent;
+            console.log(currentEnrollStudent)
+            const updatedAvailableSeat = currentAvailableSeat - 1;
+            const updatedEnrollStudent = currentEnrollStudent + 1;
+            console.log(updatedAvailableSeat, updatedEnrollStudent)
+            const updateSeat = {
+                filter: query,
+                update: {
+                    $set: { availableSeatForEnrollment: updatedAvailableSeat, currentEnrollStudent: updatedEnrollStudent }
+                }
+            };
+        
+            const updateSeatDetails = await instructorCollection.updateMany(updateSeat.filter, updateSeat.update);
+            const result = await paymentCollection.insertOne(payment)
+            res.send(result)
+        })
+        app.get('/payments', async (req, res) => {
+            const result = await paymentCollection.find().toArray()
+            res.send(result)
+        })
+        app.get('/payments/:email', async (req, res) => {
+
+            const email = req.params.email;
+            const query = { email: email }
+            console.log(email, query)
+            const options = { sort: { 'date': -1 } }
+            const user = await paymentCollection.find(query, options).toArray();
+            res.send(user)
+        })
+
         // get  selected Course data for email
 
         app.get('/usersData', async (req, res) => {
