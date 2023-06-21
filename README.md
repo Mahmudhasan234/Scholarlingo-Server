@@ -1,1 +1,8 @@
-# b7a12-summer-camp-server_side-Mahmudhasan234
+# Scholarlingo-Server
+
+## Technology used
+-Node.js 
+-Express.js 
+-MongoDB
+-Stripe
+-
